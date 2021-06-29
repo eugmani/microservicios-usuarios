@@ -9,26 +9,24 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.microservicios.usuario.model.Usuario;
+import com.eu.microservicios.commons.model.entity.Usuario;
+import com.eu.microservicios.commons.services.impl.EntityServiceImpl;
 import com.microservicios.usuario.model.dao.UsuarioDAO;
 import com.microservicios.usuario.service.UsuarioService;
 
 @Service
-public class UsuarioServiceImpl implements UsuarioService {
+public class UsuarioServiceImpl extends EntityServiceImpl<Usuario, UsuarioDAO> implements UsuarioService {	
 	
-	@Autowired
-	private UsuarioDAO usuarioDao;
-
 	@Override
+	@Transactional(readOnly = true)
 	public Page<Usuario> find(Pageable pageable, Usuario usuario) {
-		Page<Usuario> resultPage = this.usuarioDao.findAll(new Specification<Usuario>() {
+		Page<Usuario> resultPage = this.dao.findAll(new Specification<Usuario>() {
 			
 			/**
 			 * 
@@ -44,6 +42,40 @@ public class UsuarioServiceImpl implements UsuarioService {
 								.add(criteriaBuilder.and(criteriaBuilder.like(criteriaBuilder.upper(root.get("nombre")),
 										"%" + usuario.getNombre().trim().toUpperCase() + "%")));
 					}
+					if (usuario.getApellido1() != null && !usuario.getApellido1().trim().isEmpty()) {
+						predicates
+								.add(criteriaBuilder.and(criteriaBuilder.like(criteriaBuilder.upper(root.get("apellido1")),
+										"%" + usuario.getApellido1().trim().toUpperCase() + "%")));
+					}
+					if (usuario.getApellido2() != null && !usuario.getApellido2().trim().isEmpty()) {
+						predicates
+								.add(criteriaBuilder.and(criteriaBuilder.like(criteriaBuilder.upper(root.get("apellido2")),
+										"%" + usuario.getApellido2().trim().toUpperCase() + "%")));
+					}
+					if (usuario.getEmail() != null && !usuario.getEmail().trim().isEmpty()) {
+						predicates
+								.add(criteriaBuilder.and(criteriaBuilder.like(criteriaBuilder.upper(root.get("email")),
+										"%" + usuario.getEmail().trim().toUpperCase() + "%")));
+					}
+					if (usuario.getTelefonoMovil() != null && !usuario.getTelefonoMovil().trim().isEmpty()) {
+						predicates
+								.add(criteriaBuilder.and(criteriaBuilder.like(root.get("telefonoMovil"),
+										usuario.getTelefonoMovil().trim() + "%")));
+					}
+					if (usuario.getTipoDocumento() != null) {
+						predicates
+								.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("tipoDocumento").get("id"),
+										usuario.getTipoDocumento().getId())));
+					}
+					if (usuario.getNumeroDocumento() != null && !usuario.getNumeroDocumento().trim().isEmpty()) {
+						predicates
+								.add(criteriaBuilder.and(criteriaBuilder.like(root.get("numeroDocumento"),
+										usuario.getNumeroDocumento().trim() + "%")));
+					}
+					if(usuario.getDeleted() != null) {
+						predicates
+								 .add(criteriaBuilder.and(criteriaBuilder.equal(root.get("deleted"), usuario.getDeleted()? 1: 0)));
+					}
 				}
 				return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
 			}
@@ -51,18 +83,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 		
 		return resultPage;
 	}
-
+	
 	@Override
-	@Transactional
-	public Usuario save(Usuario usuario) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Optional<Usuario> findById(Long id) {
+	public void deleteById(Long id) {
+		Optional<Usuario> usuarioOpt = this.findById(id);
+		Usuario usuario;
 		
-		return this.usuarioDao.findById(id);
+		if(usuarioOpt.isPresent()) {
+			usuario = usuarioOpt.get();
+			usuario.setDeleted(true);
+			this.save(usuario);
+		}
 	}
-
+	
 }

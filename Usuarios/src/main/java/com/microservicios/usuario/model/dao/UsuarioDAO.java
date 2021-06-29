@@ -1,10 +1,8 @@
 package com.microservicios.usuario.model.dao;
 
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import com.eu.microservicios.commons.model.dao.EntityDAO;
+import com.eu.microservicios.commons.model.entity.Usuario;
 
-import com.microservicios.usuario.model.Usuario;
-
-public interface UsuarioDAO extends PagingAndSortingRepository<Usuario, Long>, JpaSpecificationExecutor<Usuario> {
+public interface UsuarioDAO extends EntityDAO<Usuario> {
 
 }

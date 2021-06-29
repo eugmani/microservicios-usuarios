@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: 'microservicios-usuarios'
+  cloud:
+    config:
+      uri:
+      - http://localhost:8888
+#      username: 'root'
+#      password: '1234'
+#      fail-fast: 'true'
+  config:
+    import: 'optional:configserver:'
+  profiles:
+    active:
+    - dev
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - refresh
+        - info

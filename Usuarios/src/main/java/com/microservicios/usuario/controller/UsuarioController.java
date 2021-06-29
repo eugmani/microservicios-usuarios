@@ -1,75 +1,96 @@
 package com.microservicios.usuario.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.microservicios.usuario.model.Usuario;
+import com.eu.microservicios.commons.controllers.CommonController;
+import com.eu.microservicios.commons.model.entity.Usuario;
 import com.microservicios.usuario.service.UsuarioService;
 
-@RestController("/user")
-public class UsuarioController {
+@RefreshScope
+@RestController //("/user")
+public class UsuarioController extends CommonController<Usuario, UsuarioService> {
+	
+	private static Logger log = LoggerFactory.getLogger(UsuarioController.class);
+	
+	@Value("${prueba.texto}")
+	private String prueba;
 	
 	@Autowired
-	private UsuarioService service;
+	private Environment env;
 	
-	@GetMapping("/find")
-	public ResponseEntity<Page<Usuario>> find(@RequestBody(required = false) Usuario usuario) {
+	@Override
+	@PostMapping("/findBy")
+	public ResponseEntity<Page<Usuario>> findBy(@RequestBody Usuario entity, Pageable pageable) {
+		if(entity == null)
+			entity = new Usuario();
+		// Busca solo los vigentes
+		entity.setDeleted(false);
 		
-		int page = 1; // TODO front page
-		Pageable pageable = PageRequest.of(page - 1, 25, Sort.by("id"));
+		if(env.getActiveProfiles().length > 0 && env.getActiveProfiles()[0].equals("dev")) {
+			log.info("dev");
+			log.info(env.getProperty("prueba.texto"));
+		}
 		
-		Page<Usuario> resultList = this.service.find(pageable, usuario);
+		log.info(this.prueba);
 		
-		if(resultList.isEmpty()) {
-			return ResponseEntity.notFound().build();
+		return super.findBy(entity, pageable);
+	}
+	
+	@Override
+	@PostMapping
+	public ResponseEntity<?> crear(@Valid @RequestBody Usuario entity, BindingResult result) {
+		// FIXME
+		entity.setCreateUserId(Long.valueOf(1));
+		entity.setUpdateUserId(Long.valueOf(1));
+		entity.setDeleted(false);
+		return super.crear(entity, result);
+	}
+	
+	@Override
+	public ResponseEntity<?> editar(@Valid @RequestBody Usuario entity, BindingResult result) {
+		entity.setCreateUserId(Long.valueOf(1));
+		entity.setUpdateUserId(Long.valueOf(1));
+		entity.setDeleted(false);
+		return super.editar(entity, result);
+	}
+	
+	@Override
+	public ResponseEntity<?> validarEditar(Usuario entity) {
+		Map<String, Object> errores = null;
+		Optional<Usuario> usuarioDbOpt;
+		
+		if(entity.getId() == null) {
+			errores = new HashMap<>();
+			errores.put("id", "El campo id no está informado");
 		} else {
-			return ResponseEntity.ok().body(resultList);
+			usuarioDbOpt = this.service.findById(entity.getId());
+			if(usuarioDbOpt.isEmpty()) {
+				return ResponseEntity.notFound().build();
+			}
 		}
+		
+		if(errores != null && errores.size() > 0) {
+			return ResponseEntity.badRequest().body(errores);
+		}
+		return null;
 	}
 	
-	@PostMapping("/crear")
-	public ResponseEntity<Usuario> crear(@RequestBody Usuario usuario) {
-		if(usuario.getId() != null) {
-			usuario.setId(null);
-		}
-		Usuario result = service.save(usuario);
-		return ResponseEntity.status(HttpStatus.CREATED).body(result);
-	}
-
-	@PutMapping("/editar")
-	public ResponseEntity<Usuario> editar(@RequestBody Usuario usuario) {
-		
-		Usuario usuarioDb;
-		
-		if(usuario.getId() == null) {
-			return ResponseEntity.badRequest().build();
-		}
-		
-		usuarioDb = this.service.save(usuario);
-		
-		if(usuarioDb != null) {
-			return ResponseEntity.status(HttpStatus.CREATED).body(usuarioDb);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
-	}
-	
-	@DeleteMapping("/eliminar")
-	public ResponseEntity<Usuario> eliminar(@RequestBody long userId) {
-		return ResponseEntity.noContent().build();
-		
-	}
 }
