@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,7 +25,7 @@ import com.eu.microservicios.commons.controllers.CommonController;
 import com.eu.microservicios.commons.model.entity.Usuario;
 import com.microservicios.usuario.service.UsuarioService;
 
-@RefreshScope
+@RefreshScope // para actualizar los properties sin volver a levantar
 @RestController //("/user")
 public class UsuarioController extends CommonController<Usuario, UsuarioService> {
 	
@@ -65,6 +66,7 @@ public class UsuarioController extends CommonController<Usuario, UsuarioService>
 	}
 	
 	@Override
+	@PutMapping
 	public ResponseEntity<?> editar(@Valid @RequestBody Usuario entity, BindingResult result) {
 		entity.setCreateUserId(Long.valueOf(1));
 		entity.setUpdateUserId(Long.valueOf(1));
