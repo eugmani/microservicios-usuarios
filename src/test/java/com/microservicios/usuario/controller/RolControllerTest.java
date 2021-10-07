@@ -10,7 +10,7 @@ class RolControllerTest {
 
 	@Test
 	void testFindByRolPageable() {
-		fail("Not yet implemented");
+		fail("Not yet implemented.");
 	}
 
 	@Test
