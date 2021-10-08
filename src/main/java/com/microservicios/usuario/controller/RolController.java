@@ -19,6 +19,9 @@ import com.microservicios.usuario.service.RolService;
 @RequestMapping("/roles")
 public class RolController extends CommonController<Rol, RolService> {
 	
+	/**
+	 * 
+	 */
 	@Override
 	@PostMapping("/findBy")
 	public ResponseEntity<Page<Rol>> findBy(Rol entity, Pageable pageable) {
@@ -28,9 +31,6 @@ public class RolController extends CommonController<Rol, RolService> {
 		return super.findBy(entity, pageable);
 	}
 	
-	/**
-	 * 
-	 */
 	@Override
 	@PostMapping
 	public ResponseEntity<?> crear(@Valid @RequestBody Rol entity, BindingResult result) {
