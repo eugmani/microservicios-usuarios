@@ -28,6 +28,9 @@ public class RolController extends CommonController<Rol, RolService> {
 		return super.findBy(entity, pageable);
 	}
 	
+	/**
+	 * 
+	 */
 	@Override
 	@PostMapping
 	public ResponseEntity<?> crear(@Valid @RequestBody Rol entity, BindingResult result) {
