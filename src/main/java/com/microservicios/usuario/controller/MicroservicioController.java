@@ -14,6 +14,10 @@ public class MicroservicioController {
 	@Autowired
 	private MicroservicioService service;
 	
+	/**
+	 * Devuelve la lista de todos los microservicios
+	 * @return
+	 */
 	@GetMapping("/microservicio")
 	public ResponseEntity<Iterable<Microservicio>> findAll() {
 		
